@@ -1,0 +1,4 @@
+output,unit,rules,cluster_radius,paper_train_R2,ours_train_R2,paper_test_R2,ours_test_R2,ours_test_RMSE,ours_test_MAE,ours_test_nRMSE_%,train_time_s
+power,W,4,0.5619,0.9908,0.9959,0.9967,0.9952,4815.0611,3625.6942,4.3855,1.1272
+voltage,V,4,0.5619,0.9000,0.9501,0.9076,0.9490,3.4558,2.4296,1.0456,1.0862
+current,A,4,0.5619,0.9912,0.9957,0.9913,0.9949,16.1921,11.4308,4.7260,1.0926
