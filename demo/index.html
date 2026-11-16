@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ANFIS Canlı Demo</title>
+<!-- Bu dosya src/export_demo.py tarafindan demo/index.html'e donusturulur. Dogrudan template'i acmayin. -->
+<style>
+  :root {
+    --ink: #13233A; --paper: #F6F4EE; --paper2: #ECE7DA; --card: #FDFCF8; --line: #DDD6C6;
+    --orange: #B8471F; --muted: #4A5568; --r1: #2a78d6; --r2: #eb6834; --r3: #1baf7a; --r4: #eda100;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  header { padding: 20px 28px 8px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; }
+  h1 { font-size: 26px; margin: 0; }
+  .sub { color: var(--muted); font-size: 15px; }
+  .badge { font-size: 13px; padding: 3px 10px; border-radius: 99px; background: #e3f2ea; color: #11593f; }
+  .badge.bad { background: #f9e3d6; color: #8a2f10; }
+  main { display: grid; grid-template-columns: 360px 1fr; gap: 20px; padding: 12px 28px 28px; align-items: start; }
+  @media (max-width: 980px) { main { grid-template-columns: 1fr; } }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+  .panel h2 { font-size: 15px; letter-spacing: .06em; text-transform: uppercase; color: var(--orange); margin: 0 0 12px; }
+  .stack { display: flex; flex-direction: column; gap: 20px; }
+  label.in { display: block; margin-bottom: 16px; }
+  .inrow { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; }
+  .inrow output { font-variant-numeric: tabular-nums; font-size: 18px; }
+  input[type=range] { width: 100%; accent-color: var(--orange); margin-top: 6px; }
+  select, button { font: inherit; border-radius: 10px; border: 1px solid var(--line); padding: 8px 10px; background: #fff; color: var(--ink); }
+  button { cursor: pointer; font-weight: 600; }
+  button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  button:disabled { opacity: .45; cursor: default; }
+  .btnrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .hint { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .outs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 700px) { .outs { grid-template-columns: 1fr; } }
+  .out { background: var(--paper); border-radius: 12px; padding: 14px 16px; }
+  .out .name { font-weight: 700; margin-bottom: 6px; }
+  .kv { display: flex; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; padding: 2px 0; }
+  .kv .k { color: var(--muted); }
+  .kv .v { font-weight: 700; }
+  .kv.meas .v { color: var(--ink); }
+  .kv.rob .v { color: var(--orange); }
+  .err { font-size: 13px; color: var(--muted); font-weight: 400; }
+  .ctrls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; background: #fff; font-weight: 600; padding: 7px 12px; }
+  .seg button.on { background: var(--ink); color: var(--paper); }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 15px; }
+  th, td { padding: 7px 8px; text-align: right; border-bottom: 1px solid var(--line); }
+  th:first-child, td:first-child { text-align: left; }
+  th { font-size: 13px; color: var(--muted); font-weight: 600; }
+  td .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 7px; vertical-align: -1px; }
+  .bar { position: relative; height: 18px; background: var(--paper2); border-radius: 4px; min-width: 120px; }
+  .bar span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
+  .bar b { position: relative; font-size: 12px; padding-left: 6px; line-height: 18px; }
+  tfoot td { font-weight: 700; border-bottom: 0; }
+  .layers { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .mfs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
+  @media (max-width: 700px) { .mfs { grid-template-columns: 1fr; } }
+  .mf { background: var(--paper); border-radius: 10px; padding: 8px 10px 4px; }
+  .mf .t { font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; }
+  .mf svg { width: 100%; height: 110px; display: block; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .why { background: var(--paper); border-left: 4px solid var(--orange); border-radius: 8px; padding: 10px 14px; margin-top: 14px; font-size: 15px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>ANFIS canlı demo</h1>
+  <span class="sub">4 çevresel girdi → DC güç, gerilim, akım · Baseline ANFIS ve Robust-ANFIS · 4 kural, Sugeno</span>
+  <span id="verify" class="badge">doğrulanıyor…</span>
+</header>
+<main>
+  <div class="stack">
+    <section class="panel">
+      <h2>Gerçek test saati</h2>
+      <select id="sample" style="width:100%"></select>
+      <div class="btnrow"><button id="rand">Rastgele saat</button></div>
+      <div class="hint">Test kümesinden (modelin eğitimde görmediği) bir saat seçince girdiler ve ölçülen değerler yüklenir.</div>
+    </section>
+    <section class="panel">
+      <h2>Girdiler</h2>
+      <div id="sliders"></div>
+      <div class="btnrow">
+        <button id="noise" class="primary">Sensör gürültüsü ekle</button>
+        <button id="undo" disabled>Geri al</button>
+      </div>
+      <div class="hint">Gürültü: ışınım ve rüzgâr ±%5, sıcaklıklar ±0,8 °C (makalenin Tablo 2’deki sensör hassasiyeti, 1 std).</div>
+    </section>
+  </div>
+  <div class="stack">
+    <section class="panel">
+      <h2>Tahminler</h2>
+      <div class="outs" id="outs"></div>
+    </section>
+    <section class="panel">
+      <h2>Kurallar nasıl ateşleniyor?</h2>
+      <div class="ctrls">
+        <div class="seg" id="segOut"></div>
+        <div class="seg" id="segModel"></div>
+      </div>
+      <table>
+        <thead><tr><th>Kural</th><th>μ ışınım</th><th>μ T ortam</th><th>μ T modül</th><th>μ rüzgâr</th><th>w̄ (ağırlık)</th><th>kural çıktısı f</th><th>katkı w̄·f</th></tr></thead>
+        <tbody id="rules"></tbody>
+        <tfoot><tr><td>Toplam (K5)</td><td></td><td></td><td></td><td></td><td>100%</td><td></td><td id="total"></td></tr></tfoot>
+      </table>
+      <div class="layers">K1: μ = exp(−(x−c)²/2σ²) · K2: w = μ₁·μ₂·μ₃·μ₄ · K3: w̄ = w/Σw · K4: w̄·f, f = p·x₁+q·x₂+r·x₃+s·x₄+t · K5: ŷ = Σ w̄·f</div>
+      <div class="why" id="why"></div>
+      <div class="mfs" id="mfs"></div>
+      <div class="legend" id="legend"></div>
+    </section>
+  </div>
+</main>
+<script>
+const DATA = {"inputs":["irradiance","amb_temp","module_temp","wind_speed"],"units":{"power":"W","voltage":"V","current":"A"},"ranges":{"irradiance":[20.0,1068.0],"amb_temp":[11.0,35.0],"module_temp":[8.0,64.0],"wind_speed":[0.0,5.0]},"models":{"baseline":{"power":{"lo":[20.5132,11.5597,8.2459,0.2278],"hi":[1067.1433,34.9905,63.4619,4.6718],"mu":109987.53994693686,"sd":71714.252223154,"c":[[0.4382176603284522,0.7443145528853629,0.4491872604838948,0.1986475276091103],[0.592135505993446,0.6890468486106422,0.954006861780842,0.5374330423041727],[0.4014837955277636,0.6726278675730014,0.6896386446276547,0.2380608329747299],[0.40089843016383464,0.2026765729412195,-0.00243590388418417,0.346302249083635]],"s":[[0.24883721943291368,0.19056795284871128,0.2236395707844525,0.22960908807704414],[0.14994642124655336,0.2296243023751617,0.15457492537384473,0.14766334356415145],[0.28413294050990984,0.19267127860012848,0.20663323553261978,0.22106411880109786],[0.20703915069256712,0.18113804341396,0.20075156195729055,0.25400751711554725]],"theta":[[2.6236629397058926,-0.5925380624027959,3.4591719639194047,0.03616418961707752,-1.806933230481845],[3.945086674283125,2.2368056140807138,-2.6978867303253544,-1.570569682653925,-1.0523895203262734],[4.212318287903984,-0.27217847110905263,-1.0998893933412075,0.5700787749451204,-1.6956652884164323],[3.51996174573861,-0.3518035797295232,0.9766757364091909,-0.010751575790586157,-1.4965389089445669]]},"voltage":{"lo":[20.5132,11.5597,8.2459,0.2278],"hi":[1067.1433,34.9905,63.4619,4.6718],"mu":330.7276359095193,"sd":16.239939283572475,"c":[[0.5001734963156312,0.8247881986250192,0.7559443178812981,0.23111736888887158],[0.7264201041086394,0.772362284976639,0.7592276732412544,0.3884295061159573],[0.4153853103956771,0.6368917186436126,0.6035407682140795,0.3694936506780229],[0.8223350966467103,0.7956235972509109,0.9712251166283307,0.47381045998500415]],"s":[[0.400622037288383,0.22038279014515066,0.4603377540993296,0.16895038475433563],[0.25931505322402787,0.20200848814946526,0.20679710680926194,0.19937309605321557],[0.26176126051652987,0.3390478760519619,0.404287087861131,0.331982639598421],[0.26062843209454883,0.21121230729728588,0.25519953356712216,0.2039724213448444]],"theta":[[3.3559031211765076,-0.3361688765601865,-1.7659479117695653,0.2281576509326069,0.6963705942117541],[12.879650654275958,-0.950423040211169,9.034603268613388,22.3559565078407,-12.98825166574569],[0.785958148380486,0.514875922252908,-5.657835230898563,-0.13262155275401896,2.458138362032442],[1.8693283963805976,0.14646831271708732,58.3920850084064,30.67887644704356,-81.71922491896622]]},"current":{"lo":[20.5132,11.5597,8.2459,0.2278],"hi":[1067.1433,34.9905,63.4619,4.6718],"mu":343.7798507068803,"sd":234.09088528517262,"c":[[0.4016054040190523,0.6702091793440987,0.2961996200323941,0.2735065934652991],[0.3988317514246027,0.6804522061988525,1.1319882994091954,0.5742598585659365],[0.5743939687490243,0.9667228766682876,0.8875738041034188,0.1839337036447764],[0.5095414131269773,-0.010439961881774679,0.33240793070739266,0.421201514094868]],"s":[[0.31961192986945675,0.18810482273620213,0.2055004213174869,0.11077836075482281],[0.20692302034685117,0.09720271345491979,0.12412939029503138,0.10919595893489631],[0.22416293480629598,0.3025164678910102,0.19736886505699744,0.2707033255166637],[0.3021156234560176,0.14612614542174263,0.25162117085466285,0.23069915156862564]],"theta":[[3.1043179075962954,-0.11054760420208075,0.646610788405209,0.07462210881065053,-1.5019616185711602],[-70.76650873040848,-341.1438286115691,302.0857548691215,-221.29693956392006,172.12541786949237],[3.860683705477302,0.9490295536711518,-1.4011219831112305,-0.023610945982578783,-1.4176990295260765],[2.972484303031586,-0.3103884998061442,1.0977230246258038,-0.00025898283884961525,-1.4608190742387939]]}},"robust":{"power":{"lo":[20.5132,11.5597,8.2459,0.2278],"hi":[1067.1433,34.9905,63.4619,4.6718],"mu":109987.53994693686,"sd":71714.252223154,"c":[[0.6740329234526146,0.7042535411269372,0.8318114574235916,0.3828717431209422],[0.9950206348346085,0.6059398132100997,0.7399390764290537,0.427609069236025],[0.8547380033061159,0.6326277703628552,0.6860432676065662,0.48380082919613665],[-0.0892491678447706,-0.12904787510272256,0.2579871489226824,0.15754090112042612]],"s":[[0.17828666312918418,0.19529224155707903,0.38067119886457174,0.17569140578278392],[0.2203601983493135,0.20361253123735448,0.19814540801727581,0.18295614439156288],[0.16889991325817513,0.20903121235562172,0.19502903619286366,0.21057260447124562],[0.21878927172393264,0.16036870613438844,0.24922877122556542,0.24407766152913898]],"theta":[[3.5462264223755566,0.30551431142282526,-0.31000531117159114,-0.10428213992557825,-1.546446096740833],[-4.823168165531503,-1.0765546194749518,-1.2263524951875902,-0.6008716066931118,9.147305538778618],[3.9628507123120875,0.30587827648006527,-0.5607152191837844,2.678818714961055,-4.292641459707787],[3.7849613019029396,-0.21879018728023775,0.5814953501013694,0.08526479239084253,-1.508636497984902]]},"voltage":{"lo":[20.5132,11.5597,8.2459,0.2278],"hi":[1067.1433,34.9905,63.4619,4.6718],"mu":330.7276359095193,"sd":16.239939283572475,"c":[[0.4987398150007404,0.9348394662389826,0.6279501213803428,0.3151460956818771],[0.6074274805238938,0.8476711593799547,0.7074553194739117,0.3644394611152213],[0.27724533046953226,0.2347566139626874,0.3965207851149509,-0.16685958545542678],[0.6868112212418899,0.9110658934192536,1.0402035507904233,0.42567491091171517]],"s":[[0.3612528173745729,0.23596992060779715,0.39316742350648604,0.2019132440588447],[0.2665142826067055,0.20454130493030281,0.20821526004280885,0.17639933506781103],[0.1491202237273804,0.1820845522395275,0.3248294796630018,0.3511056573221482],[0.303534121344605,0.2251684113694857,0.3075037757880283,0.18562502898221167]],"theta":[[5.165488229984403,-0.7805156350125813,-1.0773613590477003,1.5698413364475359,1.4328016266715526],[1.0874368971554125,-0.28603666113951487,8.158857579906494,10.441753171124535,-7.0384461785226735],[0.3337244713726985,-0.6627557846290193,-4.357427784439237,-0.17098512015003223,2.4862940348513516],[4.056280184183542,1.9519567962684379,30.819685504732828,17.49339761583374,-49.225456291613504]]},"current":{"lo":[20.5132,11.5597,8.2459,0.2278],"hi":[1067.1433,34.9905,63.4619,4.6718],"mu":343.7798507068803,"sd":234.09088528517262,"c":[[0.6931128886191666,0.48640799890931186,0.41097192809582983,0.4433873899567075],[0.5873692941048048,0.7577344298341384,0.8239009054914267,0.23048664054669366],[0.6004188973374978,0.7807706829486621,0.8243518270435009,0.04450790518881537],[0.32336686270254666,0.7955776092838325,0.5465528160505448,0.20167751304939524]],"s":[[0.2896674189169785,0.11913283990283305,0.11976933674356026,0.2829673008320018],[0.18704900842433725,0.1955110738021889,0.1731191425416819,0.14340336132831052],[0.21683050725462266,0.18625427247948087,0.2544841167311287,0.20085707659026486],[0.18404149749646853,0.4128586217948334,0.17047544263111897,0.19587412044715927]],"theta":[[2.7712920462796227,-0.4174662858247643,1.3752140378154818,0.257600918963118,-1.6292203561469683],[4.928854131035585,0.05632298464582313,-1.1733735924538382,0.39992979112706134,-1.4261150478390812],[0.6118507024518391,-0.3285489067558816,2.83051724287218,-1.1364625660176777,-1.5225808431122079],[3.3353610070572595,-0.04481422497691937,0.3503587069230773,0.09043158869022995,-1.451602662038169]]}}},"samples":[{"t":"01.06.2017 08:00","x":[608.22,22.21,35.71,1.91],"y":{"power":161268.33,"voltage":333.3,"current":484.35}},{"t":"03.06.2017 11:00","x":[551.95,24.53,35.93,2.65],"y":{"power":141543.33,"voltage":332.57,"current":428.52}},{"t":"04.06.2017 12:00","x":[933.8,29.05,52.34,2.35],"y":{"power":221123.33,"voltage":305.0,"current":725.63}},{"t":"06.06.2017 08:00","x":[545.0,20.45,30.45,3.08],"y":{"power":144692.83,"voltage":336.85,"current":430.23}},{"t":"07.06.2017 16:00","x":[124.2,17.99,22.21,1.15],"y":{"power":39912.92,"voltage":350.55,"current":114.22}},{"t":"08.06.2017 16:00","x":[439.93,24.0,35.91,1.13],"y":{"power":122519.67,"voltage":334.81,"current":366.28}},{"t":"11.06.2017 06:00","x":[143.49,23.86,22.17,0.89],"y":{"power":35393.83,"voltage":350.2,"current":101.69}},{"t":"12.06.2017 16:00","x":[367.99,32.43,41.93,1.75],"y":{"power":99433.56,"voltage":323.91,"current":307.27}},{"t":"15.06.2017 05:00","x":[27.08,21.36,21.27,0.52],"y":{"power":4690.57,"voltage":352.38,"current":13.52}},{"t":"17.06.2017 06:00","x":[66.05,22.98,24.53,1.14],"y":{"power":16895.25,"voltage":344.2,"current":49.1}},{"t":"18.06.2017 14:00","x":[639.25,32.8,47.58,2.95],"y":{"power":151682.0,"voltage":317.84,"current":481.99}},{"t":"20.06.2017 12:00","x":[924.22,28.82,51.88,2.42],"y":{"power":197020.33,"voltage":318.81,"current":631.6}},{"t":"21.06.2017 17:00","x":[231.89,30.12,35.22,2.34],"y":{"power":67490.0,"voltage":332.23,"current":203.12}},{"t":"23.06.2017 07:00","x":[157.82,22.68,26.35,2.03],"y":{"power":41495.33,"voltage":340.25,"current":122.33}},{"t":"24.06.2017 07:00","x":[233.65,23.45,27.08,2.45],"y":{"power":60933.5,"voltage":335.17,"current":181.91}},{"t":"25.06.2017 09:00","x":[591.6,24.61,40.02,1.84],"y":{"power":148022.67,"voltage":321.24,"current":464.45}},{"t":"26.06.2017 13:00","x":[745.23,25.63,46.48,1.85],"y":{"power":165678.83,"voltage":323.06,"current":520.77}},{"t":"28.06.2017 06:00","x":[136.07,17.86,17.67,1.1],"y":{"power":32843.17,"voltage":356.73,"current":92.67}},{"t":"29.06.2017 09:00","x":[701.79,26.07,43.71,1.87],"y":{"power":174603.33,"voltage":321.45,"current":543.87}},{"t":"01.07.2017 07:00","x":[172.74,25.08,28.78,1.77],"y":{"power":44898.0,"voltage":333.68,"current":135.27}},{"t":"02.07.2017 06:00","x":[129.77,25.64,25.35,0.93],"y":{"power":30789.17,"voltage":338.75,"current":91.05}},{"t":"03.07.2017 10:00","x":[901.01,29.62,50.24,2.19],"y":{"power":211906.67,"voltage":306.05,"current":692.67}},{"t":"04.07.2017 11:00","x":[855.73,31.42,55.71,1.02],"y":{"power":180951.67,"voltage":314.13,"current":585.03}},{"t":"05.07.2017 11:00","x":[722.58,30.56,49.18,1.29],"y":{"power":165141.67,"voltage":312.26,"current":534.15}},{"t":"06.07.2017 08:00","x":[147.98,22.92,25.07,0.89],"y":{"power":41071.67,"voltage":345.41,"current":118.9}},{"t":"08.07.2017 06:00","x":[120.43,23.19,23.19,1.45],"y":{"power":28585.17,"voltage":345.54,"current":83.18}},{"t":"09.07.2017 08:00","x":[584.3,23.15,34.32,2.42],"y":{"power":153086.67,"voltage":335.6,"current":456.42}},{"t":"10.07.2017 12:00","x":[1021.26,31.26,58.32,2.07],"y":{"power":225054.0,"voltage":300.52,"current":754.64}},{"t":"11.07.2017 17:00","x":[69.46,29.76,31.31,1.5],"y":{"power":25094.83,"voltage":332.7,"current":75.5}},{"t":"13.07.2017 08:00","x":[483.99,30.49,44.1,1.18],"y":{"power":118993.33,"voltage":320.3,"current":372.26}},{"t":"14.07.2017 06:00","x":[122.26,26.91,27.69,0.64],"y":{"power":30767.0,"voltage":340.53,"current":90.68}},{"t":"15.07.2017 17:00","x":[230.95,29.18,34.52,2.56],"y":{"power":68152.83,"voltage":335.38,"current":203.37}},{"t":"17.07.2017 13:00","x":[328.81,30.61,40.13,2.15],"y":{"power":81648.17,"voltage":329.22,"current":248.48}},{"t":"18.07.2017 16:00","x":[115.71,28.02,31.31,1.09],"y":{"power":36954.17,"voltage":334.8,"current":110.39}},{"t":"19.07.2017 18:00","x":[56.0,32.35,33.12,1.07],"y":{"power":20356.38,"voltage":335.3,"current":61.6}},{"t":"21.07.2017 06:00","x":[109.35,27.79,27.57,0.57],"y":{"power":26529.67,"voltage":339.72,"current":78.4}},{"t":"22.07.2017 18:00","x":[22.19,22.45,22.45,0.83],"y":{"power":6344.77,"voltage":353.0,"current":18.6}},{"t":"24.07.2017 14:00","x":[784.52,30.96,52.49,1.54],"y":{"power":179556.0,"voltage":308.9,"current":586.7}},{"t":"25.07.2017 18:00","x":[62.02,24.25,25.81,1.87],"y":{"power":22807.8,"voltage":345.99,"current":66.37}},{"t":"27.07.2017 15:00","x":[432.26,30.17,45.04,1.33],"y":{"power":109839.67,"voltage":314.01,"current":353.14}},{"t":"29.07.2017 11:00","x":[181.65,19.81,21.31,2.28],"y":{"power":53738.83,"voltage":352.56,"current":152.31}},{"t":"30.07.2017 18:00","x":[43.41,25.89,24.56,0.92],"y":{"power":18366.78,"voltage":348.61,"current":53.53}},{"t":"01.08.2017 07:00","x":[312.93,23.58,28.41,1.37],"y":{"power":78973.67,"voltage":343.0,"current":230.62}},{"t":"02.08.2017 10:00","x":[883.49,30.24,55.33,1.18],"y":{"power":202636.67,"voltage":301.39,"current":672.83}},{"t":"03.08.2017 09:00","x":[458.99,26.7,40.33,0.79],"y":{"power":116875.0,"voltage":324.67,"current":361.52}},{"t":"04.08.2017 17:00","x":[191.6,30.52,34.46,2.57],"y":{"power":57699.33,"voltage":333.56,"current":173.07}},{"t":"06.08.2017 16:00","x":[289.35,26.97,36.35,1.17],"y":{"power":80749.5,"voltage":331.17,"current":244.78}},{"t":"08.08.2017 07:00","x":[143.26,19.96,22.06,1.92],"y":{"power":39358.83,"voltage":347.83,"current":113.18}},{"t":"09.08.2017 17:00","x":[219.93,27.66,33.67,0.98],"y":{"power":65761.0,"voltage":333.61,"current":197.29}},{"t":"11.08.2017 14:00","x":[447.08,28.07,40.96,2.15],"y":{"power":110417.17,"voltage":325.69,"current":345.37}},{"t":"12.08.2017 15:00","x":[416.84,29.47,39.35,1.65],"y":{"power":109111.0,"voltage":323.71,"current":340.12}},{"t":"14.08.2017 07:00","x":[108.38,21.63,22.55,0.62],"y":{"power":30070.67,"voltage":347.24,"current":86.61}},{"t":"16.08.2017 11:00","x":[798.29,28.86,49.16,1.34],"y":{"power":176755.0,"voltage":316.31,"current":568.59}},{"t":"17.08.2017 10:00","x":[760.71,31.83,52.69,1.46],"y":{"power":176546.67,"voltage":304.58,"current":581.6}},{"t":"18.08.2017 13:00","x":[698.5,33.72,52.83,1.92],"y":{"power":153005.33,"voltage":312.92,"current":496.79}},{"t":"19.08.2017 13:00","x":[948.03,30.26,55.01,1.99],"y":{"power":217531.67,"voltage":299.08,"current":727.51}},{"t":"20.08.2017 11:00","x":[996.9,26.91,53.23,1.34],"y":{"power":229536.67,"voltage":301.36,"current":761.79}},{"t":"22.08.2017 16:00","x":[369.64,32.46,39.81,2.98],"y":{"power":101465.5,"voltage":328.77,"current":308.81}},{"t":"23.08.2017 14:00","x":[830.27,27.8,44.76,2.53],"y":{"power":205036.67,"voltage":317.45,"current":646.28}},{"t":"25.08.2017 06:00","x":[81.1,17.17,15.96,1.25],"y":{"power":17322.65,"voltage":360.79,"current":48.3}},{"t":"26.08.2017 10:00","x":[842.04,25.34,47.03,1.12],"y":{"power":202895.5,"voltage":313.17,"current":650.02}},{"t":"27.08.2017 11:00","x":[512.0,25.28,39.22,1.01],"y":{"power":134165.0,"voltage":325.15,"current":413.4}},{"t":"29.08.2017 15:00","x":[49.79,18.64,19.01,1.41],"y":{"power":18541.17,"voltage":352.26,"current":52.64}},{"t":"30.08.2017 15:00","x":[528.58,25.35,40.83,1.35],"y":{"power":139683.33,"voltage":325.52,"current":430.57}},{"t":"01.09.2017 07:00","x":[115.56,15.25,16.92,1.44],"y":{"power":32500.67,"voltage":357.06,"current":91.04}},{"t":"02.09.2017 14:00","x":[113.16,15.42,17.28,1.23],"y":{"power":36403.0,"voltage":357.26,"current":101.89}},{"t":"03.09.2017 17:00","x":[119.7,24.01,25.35,1.48],"y":{"power":40666.17,"voltage":345.61,"current":117.85}},{"t":"04.09.2017 17:00","x":[111.38,25.98,27.41,2.01],"y":{"power":38508.5,"voltage":341.98,"current":112.72}},{"t":"07.09.2017 07:00","x":[269.33,15.42,18.13,1.59],"y":{"power":70563.17,"voltage":358.1,"current":197.32}},{"t":"08.09.2017 12:00","x":[853.82,21.93,43.56,2.04],"y":{"power":196964.0,"voltage":326.16,"current":613.04}},{"t":"09.09.2017 09:00","x":[741.55,17.85,33.23,2.07],"y":{"power":192836.5,"voltage":335.71,"current":575.28}},{"t":"10.09.2017 15:00","x":[518.09,21.8,34.3,1.46],"y":{"power":140367.33,"voltage":334.69,"current":420.73}},{"t":"12.09.2017 08:00","x":[198.4,19.04,23.97,0.51],"y":{"power":54521.67,"voltage":348.88,"current":156.28}},{"t":"14.09.2017 09:00","x":[730.09,22.69,39.66,1.77],"y":{"power":179303.33,"voltage":326.65,"current":551.09}},{"t":"15.09.2017 10:00","x":[879.27,24.44,46.59,1.38],"y":{"power":212701.67,"voltage":312.31,"current":681.39}},{"t":"17.09.2017 08:00","x":[108.14,21.49,23.84,0.9],"y":{"power":31225.5,"voltage":345.15,"current":90.49}},{"t":"18.09.2017 15:00","x":[268.98,24.82,32.6,0.82],"y":{"power":73801.5,"voltage":335.93,"current":220.06}},{"t":"20.09.2017 10:00","x":[455.96,25.02,34.95,1.66],"y":{"power":118361.67,"voltage":332.78,"current":358.25}},{"t":"21.09.2017 13:00","x":[851.71,28.41,48.55,1.58],"y":{"power":204130.0,"voltage":308.7,"current":661.21}},{"t":"23.09.2017 09:00","x":[664.77,23.94,39.19,1.41],"y":{"power":167731.67,"voltage":326.38,"current":515.82}},{"t":"25.09.2017 16:00","x":[173.41,31.05,34.9,0.6],"y":{"power":51802.83,"voltage":328.47,"current":158.29}},{"t":"28.09.2017 10:00","x":[858.35,22.84,36.29,4.14],"y":{"power":219723.33,"voltage":329.05,"current":667.89}},{"t":"30.09.2017 07:00","x":[262.27,13.9,16.68,2.72],"y":{"power":60741.0,"voltage":357.59,"current":169.13}}],"check":{"x":[[608.2233,22.2103,35.7052,1.9056],[931.6933,25.0245,43.5651,3.0874],[43.391,25.0072,23.9844,2.1408],[369.3733,19.6032,26.0496,1.5857],[927.7667,24.0392,42.2395,2.8501],[531.6533,22.6955,34.5249,2.1088],[551.945,24.5305,35.9294,2.646],[781.2583,26.6055,43.0802,2.5857],[445.8083,27.4792,35.9943,2.4532],[50.3975,26.0527,24.9673,0.9706],[45.8662,15.0388,13.295,0.3834],[747.4217,25.6033,44.1183,1.7906],[933.8,29.0475,52.3383,2.3454],[527.9867,30.2182,43.6856,1.9253],[214.9,29.4568,34.1643,1.5568],[134.3867,21.121,23.0513,1.1423],[165.1367,21.2102,22.1486,1.7137],[505.1167,22.6232,33.2476,0.7157],[545.005,20.453,30.4527,3.0807],[1018.58,22.6105,41.9278,3.249]],"pred":{"power":{"baseline":[155449.76205646622,221753.45945288904,14732.458636398063,98202.69716188393,225076.19417474646,138207.62810167248,144051.49463801822,189242.5639458751,119147.2799521176,15737.515979657357,11326.61847451875,181107.3902137279,208861.9562723673,133818.43787783996,61551.00416923273,36526.70095928354,43167.65511763313,129411.53287105843,145324.6753907494,250150.92599293828],"robust":[156938.40645656813,220350.89758365473,15175.052117799089,96150.53312712649,221205.4817571519,140118.77621207773,144253.71560969367,189023.32652129122,117335.27719938561,17414.02396701368,10069.534981359713,182462.5427017259,214287.88822134293,133938.56382088285,60130.965665303265,37125.46772189607,44161.493316210646,126038.53801584241,144328.9474544828,239617.46701367997]},"voltage":{"baseline":[332.2146648086773,317.8545263313454,344.36446659865203,346.932416461499,317.4086501377182,333.7922219964221,331.75992727470833,322.7087784835648,330.8938694957897,340.1360089123306,363.1281917438371,321.05617172706235,310.51536106905934,321.0145753738385,332.1220556262918,347.9132014669021,350.1334984553138,337.61516891180185,340.5198613991345,311.3041478574407],"robust":[331.49316653013256,319.16894328896234,343.376346196513,346.243551747312,319.71220764808544,333.4412685336992,332.1595012026258,322.76092701497157,331.24247189552244,340.0594590201915,363.04692973929275,320.682482755118,309.0371232534945,321.6276340801655,331.80816044043877,347.92427456380324,349.38714496607963,338.05685885385,340.4889052932409,316.55002442171724]},"current":{"baseline":[468.88441349597423,707.5719949976935,43.899181356328086,281.60575541507046,708.0066988756671,413.01248339767426,429.37473708488386,597.8266297599974,357.06219398302915,45.71715529032292,31.090319617740192,569.3967090579521,687.3820950466129,417.7499473730994,184.01081543474783,105.11947894194674,126.08509781054539,386.9762078520913,424.80556316217275,775.5665466285091],"robust":[467.6781574683048,709.5846076895591,43.13746180138787,281.5969167078178,702.8827867479795,414.12005666898034,432.50167077512657,592.812864141544,354.9727773218922,46.138762397712526,29.293589135102593,576.2236238550217,701.4723423981491,413.54258680379536,184.81126628448584,105.22579839587354,125.69324529930199,379.56713045718374,419.35934495874596,771.4569113831935]}}}};
+
+//<model>
+// Python'daki ANFISRegressor.predict ile ayni hesap (src/anfis.py, ANFIS.firing / rule_outputs).
+function anfisPredict(m, x) {
+  const n = x.length, R = m.c.length;
+  const xn = x.map((v, i) => (v - m.lo[i]) / (m.hi[i] - m.lo[i]));          // [0,1] olcekleme
+  const mu = [], logw = [];
+  for (let j = 0; j < R; j++) {
+    mu.push([]); let lw = 0;
+    for (let i = 0; i < n; i++) {
+      const z = (xn[i] - m.c[j][i]) / m.s[j][i];
+      mu[j].push(Math.exp(-0.5 * z * z));                                    // K1: Gauss uyelik
+      lw += -0.5 * z * z;                                                    // K2: log(carpim)
+    }
+    logw.push(lw);
+  }
+  const mx = Math.max(...logw);
+  const e = logw.map(v => Math.exp(v - mx)), se = e.reduce((a, b) => a + b, 0);
+  const wbar = e.map(v => v / se);                                           // K3: normalizasyon
+  const f = m.theta.map(t => t.slice(0, n).reduce((a, p, i) => a + p * xn[i], t[n]));  // Sugeno
+  const yn = wbar.reduce((a, w, j) => a + w * f[j], 0);                      // K4 + K5
+  return { y: yn * m.sd + m.mu, mu, w: logw.map(Math.exp), wbar, f: f.map(v => v * m.sd + m.mu), xn };
+}
+//</model>
+
+const OUTS = { power: "DC güç", voltage: "DC gerilim", current: "DC akım" };
+const LABELS = { irradiance: ["Güneş ışınımı", "W/m²", 0], amb_temp: ["Ortam sıcaklığı", "°C", 1],
+                 module_temp: ["Modül sıcaklığı", "°C", 1], wind_speed: ["Rüzgâr hızı", "m/s", 2] };
+const COLORS = ["var(--r1)", "var(--r2)", "var(--r3)", "var(--r4)"];
+const HEX = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100"];
+const MODELS = { baseline: "ANFIS (makale)", robust: "Robust-ANFIS" };
+let x = [], sampleIdx = null, beforeNoise = null, selOut = "power", selModel = "baseline";
+
+const fmt = (v, d = 1) => v.toLocaleString("tr-TR", { minimumFractionDigits: d, maximumFractionDigits: d });
+const fmtOut = (o, v) => o === "power" ? fmt(v / 1000, 1) + " kW" : fmt(v, 1) + (o === "voltage" ? " V" : " A");
+
+function verify() {
+  let maxRel = 0;
+  for (const kind of ["baseline", "robust"]) for (const o in OUTS)
+    DATA.check.x.forEach((xi, k) => {
+      const py = DATA.check.pred[o][kind][k], js = anfisPredict(DATA.models[kind][o], xi).y;
+      maxRel = Math.max(maxRel, Math.abs(js - py) / Math.max(1, Math.abs(py)));
+    });
+  const el = document.getElementById("verify");
+  el.textContent = maxRel < 1e-9 ? "Python modeliyle birebir aynı (maks. bağıl fark " + maxRel.toExponential(1) + ")" : "UYARI: Python ile fark " + maxRel.toExponential(2);
+  if (maxRel >= 1e-9) el.classList.add("bad");
+}
+
+function buildSliders() {
+  const box = document.getElementById("sliders");
+  DATA.inputs.forEach((name, i) => {
+    const [lab, unit, dec] = LABELS[name], [lo, hi] = DATA.ranges[name];
+    const l = document.createElement("label"); l.className = "in";
+    l.innerHTML = `<div class="inrow"><span>${lab}</span><output id="o${i}"></output></div>
+      <input type="range" id="r${i}" min="${lo}" max="${hi}" step="${(hi - lo) / 500}">`;
+    box.appendChild(l);
+    l.querySelector("input").addEventListener("input", ev => { x[i] = +ev.target.value; sampleIdx = null; beforeNoise = null; render(); });
+  });
+}
+
+function setInputs(v) { x = v.slice(); render(); }
+
+function render() {
+  DATA.inputs.forEach((name, i) => {
+    const [, unit, dec] = LABELS[name];
+    document.getElementById("r" + i).value = x[i];
+    document.getElementById("o" + i).textContent = fmt(x[i], dec) + " " + unit;
+  });
+  document.getElementById("undo").disabled = !beforeNoise;
+  const s = sampleIdx !== null ? DATA.samples[sampleIdx] : null;
+  document.getElementById("sample").value = sampleIdx === null ? "" : String(sampleIdx);
+
+  // Tahmin kartlari
+  const outs = document.getElementById("outs"); outs.innerHTML = "";
+  for (const o in OUTS) {
+    const b = anfisPredict(DATA.models.baseline[o], x).y, r = anfisPredict(DATA.models.robust[o], x).y;
+    const meas = s ? s.y[o] : null;
+    const err = v => meas === null ? "" : ` <span class="err">(${v >= meas ? "+" : "−"}${fmt(Math.abs(v - meas) / Math.abs(meas) * 100, 1)}%)</span>`;
+    outs.insertAdjacentHTML("beforeend", `<div class="out"><div class="name">${OUTS[o]}</div>
+      ${meas !== null ? `<div class="kv meas"><span class="k">Ölçülen${beforeNoise ? " (gürültüsüz)" : ""}</span><span class="v">${fmtOut(o, meas)}</span></div>` : ""}
+      <div class="kv"><span class="k">ANFIS</span><span class="v">${fmtOut(o, b)}${err(b)}</span></div>
+      <div class="kv rob"><span class="k">Robust-ANFIS</span><span class="v">${fmtOut(o, r)}${err(r)}</span></div></div>`);
+  }
+
+  // Kural tablosu
+  const m = DATA.models[selModel][selOut], p = anfisPredict(m, x);
+  const tb = document.getElementById("rules"); tb.innerHTML = "";
+  p.wbar.forEach((w, j) => {
+    tb.insertAdjacentHTML("beforeend", `<tr><td><span class="dot" style="background:${COLORS[j]}"></span>Kural ${j + 1}</td>
+      ${p.mu[j].map(v => `<td>${fmt(v, 2)}</td>`).join("")}
+      <td><div class="bar"><span style="width:${(w * 100).toFixed(1)}%; background:${COLORS[j]}; opacity:.55"></span><b>${fmt(w * 100, 1)}%</b></div></td>
+      <td>${fmtOut(selOut, p.f[j])}</td><td>${fmtOut(selOut, w * p.f[j])}</td></tr>`);
+  });
+  document.getElementById("total").textContent = fmtOut(selOut, p.y);
+
+  const top = p.wbar.indexOf(Math.max(...p.wbar));
+  const cj = m.c[top].map((c, i) => c * (m.hi[i] - m.lo[i]) + m.lo[i]);
+  document.getElementById("why").innerHTML = `<b>Kural ${top + 1}</b> en güçlü ateşleniyor (w̄ = ${fmt(p.wbar[top] * 100, 1)}%): girdiler bu kuralın merkezine yakın
+    (ışınım ≈ ${fmt(cj[0], 0)} W/m², T ortam ≈ ${fmt(cj[1], 1)} °C, T modül ≈ ${fmt(cj[2], 1)} °C, rüzgâr ≈ ${fmt(cj[3], 1)} m/s).
+    Tahmin, kuralların doğrusal çıktılarının w̄ ağırlıklı ortalamasıdır: ${fmtOut(selOut, p.y)}.`;
+
+  // Uyelik fonksiyonu grafikleri
+  const mfs = document.getElementById("mfs"); mfs.innerHTML = "";
+  DATA.inputs.forEach((name, i) => {
+    const [lab, unit, dec] = LABELS[name], W = 300, H = 100, N = 80;
+    let paths = "";
+    for (let j = 0; j < m.c.length; j++) {
+      let d = "";
+      for (let k = 0; k <= N; k++) {
+        const t = k / N, mu = Math.exp(-0.5 * ((t - m.c[j][i]) / m.s[j][i]) ** 2);
+        d += (k ? "L" : "M") + (t * W).toFixed(1) + " " + (H - 4 - mu * (H - 12)).toFixed(1);
+      }
+      paths += `<path d="${d}" fill="none" stroke="${HEX[j]}" stroke-width="2.5"/>`;
+    }
+    const xx = Math.min(1, Math.max(0, p.xn[i])) * W;
+    mfs.insertAdjacentHTML("beforeend", `<div class="mf"><div class="t"><span>${lab}</span><span>${fmt(x[i], dec)} ${unit}</span></div>
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="${lab} için kuralların üyelik fonksiyonları">${paths}
+      <line x1="${xx}" y1="0" x2="${xx}" y2="${H}" stroke="#13233A" stroke-width="2" stroke-dasharray="5 4"/></svg></div>`);
+  });
+}
+
+function seg(id, items, get, set) {
+  const el = document.getElementById(id); el.innerHTML = "";
+  for (const k in items) {
+    const b = document.createElement("button"); b.textContent = items[k];
+    b.className = get() === k ? "on" : ""; b.onclick = () => { set(k); seg(id, items, get, set); render(); };
+    el.appendChild(b);
+  }
+}
+
+function init() {
+  const sel = document.getElementById("sample");
+  sel.innerHTML = `<option value="">— elle girilen değerler —</option>` + DATA.samples.map((s, i) =>
+    `<option value="${i}">${s.t} · ${fmt(s.x[0], 0)} W/m² · ${fmt(s.y.power / 1000, 0)} kW</option>`).join("");
+  sel.onchange = () => { if (sel.value === "") return; sampleIdx = +sel.value; beforeNoise = null; setInputs(DATA.samples[sampleIdx].x); };
+  document.getElementById("rand").onclick = () => { sampleIdx = Math.floor(Math.random() * DATA.samples.length); beforeNoise = null; setInputs(DATA.samples[sampleIdx].x); };
+  document.getElementById("noise").onclick = () => {
+    if (!beforeNoise) beforeNoise = x.slice();
+    const g = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+    const b = beforeNoise;
+    x = [Math.max(0, b[0] * (1 + 0.05 * g())), b[1] + 0.8 * g(), b[2] + 0.8 * g(), Math.max(0, b[3] * (1 + 0.05 * g()))];
+    render();
+  };
+  document.getElementById("undo").onclick = () => { if (beforeNoise) { x = beforeNoise; beforeNoise = null; render(); } };
+  document.getElementById("legend").innerHTML = HEX.map((c, j) => `<span><span class="dot" style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${c};margin-right:6px"></span>Kural ${j + 1}</span>`).join("") + `<span>kesikli çizgi: şu anki girdi</span>`;
+  seg("segOut", OUTS, () => selOut, k => selOut = k);
+  seg("segModel", MODELS, () => selModel, k => selModel = k);
+  buildSliders();
+  verify();
+  const noon = DATA.samples.reduce((bi, s, i) => s.x[0] > DATA.samples[bi].x[0] ? i : bi, 0);
+  sampleIdx = noon; setInputs(DATA.samples[noon].x);
+}
+init();
+</script>
+</body>
+</html>

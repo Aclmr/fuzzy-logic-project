@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ANFIS Canlı Demo</title>
+<!-- Bu dosya src/export_demo.py tarafindan demo/index.html'e donusturulur. Dogrudan template'i acmayin. -->
+<style>
+  :root {
+    --ink: #13233A; --paper: #F6F4EE; --paper2: #ECE7DA; --card: #FDFCF8; --line: #DDD6C6;
+    --orange: #B8471F; --muted: #4A5568; --r1: #2a78d6; --r2: #eb6834; --r3: #1baf7a; --r4: #eda100;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  header { padding: 20px 28px 8px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; }
+  h1 { font-size: 26px; margin: 0; }
+  .sub { color: var(--muted); font-size: 15px; }
+  .badge { font-size: 13px; padding: 3px 10px; border-radius: 99px; background: #e3f2ea; color: #11593f; }
+  .badge.bad { background: #f9e3d6; color: #8a2f10; }
+  main { display: grid; grid-template-columns: 360px 1fr; gap: 20px; padding: 12px 28px 28px; align-items: start; }
+  @media (max-width: 980px) { main { grid-template-columns: 1fr; } }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+  .panel h2 { font-size: 15px; letter-spacing: .06em; text-transform: uppercase; color: var(--orange); margin: 0 0 12px; }
+  .stack { display: flex; flex-direction: column; gap: 20px; }
+  label.in { display: block; margin-bottom: 16px; }
+  .inrow { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; }
+  .inrow output { font-variant-numeric: tabular-nums; font-size: 18px; }
+  input[type=range] { width: 100%; accent-color: var(--orange); margin-top: 6px; }
+  select, button { font: inherit; border-radius: 10px; border: 1px solid var(--line); padding: 8px 10px; background: #fff; color: var(--ink); }
+  button { cursor: pointer; font-weight: 600; }
+  button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  button:disabled { opacity: .45; cursor: default; }
+  .btnrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .hint { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .outs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 700px) { .outs { grid-template-columns: 1fr; } }
+  .out { background: var(--paper); border-radius: 12px; padding: 14px 16px; }
+  .out .name { font-weight: 700; margin-bottom: 6px; }
+  .kv { display: flex; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; padding: 2px 0; }
+  .kv .k { color: var(--muted); }
+  .kv .v { font-weight: 700; }
+  .kv.meas .v { color: var(--ink); }
+  .kv.rob .v { color: var(--orange); }
+  .err { font-size: 13px; color: var(--muted); font-weight: 400; }
+  .ctrls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; background: #fff; font-weight: 600; padding: 7px 12px; }
+  .seg button.on { background: var(--ink); color: var(--paper); }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 15px; }
+  th, td { padding: 7px 8px; text-align: right; border-bottom: 1px solid var(--line); }
+  th:first-child, td:first-child { text-align: left; }
+  th { font-size: 13px; color: var(--muted); font-weight: 600; }
+  td .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 7px; vertical-align: -1px; }
+  .bar { position: relative; height: 18px; background: var(--paper2); border-radius: 4px; min-width: 120px; }
+  .bar span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
+  .bar b { position: relative; font-size: 12px; padding-left: 6px; line-height: 18px; }
+  tfoot td { font-weight: 700; border-bottom: 0; }
+  .layers { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .mfs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
+  @media (max-width: 700px) { .mfs { grid-template-columns: 1fr; } }
+  .mf { background: var(--paper); border-radius: 10px; padding: 8px 10px 4px; }
+  .mf .t { font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; }
+  .mf svg { width: 100%; height: 110px; display: block; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .why { background: var(--paper); border-left: 4px solid var(--orange); border-radius: 8px; padding: 10px 14px; margin-top: 14px; font-size: 15px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>ANFIS canlı demo</h1>
+  <span class="sub">4 çevresel girdi → DC güç, gerilim, akım · Baseline ANFIS ve Robust-ANFIS · 4 kural, Sugeno</span>
+  <span id="verify" class="badge">doğrulanıyor…</span>
+</header>
+<main>
+  <div class="stack">
+    <section class="panel">
+      <h2>Gerçek test saati</h2>
+      <select id="sample" style="width:100%"></select>
+      <div class="btnrow"><button id="rand">Rastgele saat</button></div>
+      <div class="hint">Test kümesinden (modelin eğitimde görmediği) bir saat seçince girdiler ve ölçülen değerler yüklenir.</div>
+    </section>
+    <section class="panel">
+      <h2>Girdiler</h2>
+      <div id="sliders"></div>
+      <div class="btnrow">
+        <button id="noise" class="primary">Sensör gürültüsü ekle</button>
+        <button id="undo" disabled>Geri al</button>
+      </div>
+      <div class="hint">Gürültü: ışınım ve rüzgâr ±%5, sıcaklıklar ±0,8 °C (makalenin Tablo 2’deki sensör hassasiyeti, 1 std).</div>
+    </section>
+  </div>
+  <div class="stack">
+    <section class="panel">
+      <h2>Tahminler</h2>
+      <div class="outs" id="outs"></div>
+    </section>
+    <section class="panel">
+      <h2>Kurallar nasıl ateşleniyor?</h2>
+      <div class="ctrls">
+        <div class="seg" id="segOut"></div>
+        <div class="seg" id="segModel"></div>
+      </div>
+      <table>
+        <thead><tr><th>Kural</th><th>μ ışınım</th><th>μ T ortam</th><th>μ T modül</th><th>μ rüzgâr</th><th>w̄ (ağırlık)</th><th>kural çıktısı f</th><th>katkı w̄·f</th></tr></thead>
+        <tbody id="rules"></tbody>
+        <tfoot><tr><td>Toplam (K5)</td><td></td><td></td><td></td><td></td><td>100%</td><td></td><td id="total"></td></tr></tfoot>
+      </table>
+      <div class="layers">K1: μ = exp(−(x−c)²/2σ²) · K2: w = μ₁·μ₂·μ₃·μ₄ · K3: w̄ = w/Σw · K4: w̄·f, f = p·x₁+q·x₂+r·x₃+s·x₄+t · K5: ŷ = Σ w̄·f</div>
+      <div class="why" id="why"></div>
+      <div class="mfs" id="mfs"></div>
+      <div class="legend" id="legend"></div>
+    </section>
+  </div>
+</main>
+<script>
+const DATA = /*__DATA__*/null;
+
+//<model>
+// Python'daki ANFISRegressor.predict ile ayni hesap (src/anfis.py, ANFIS.firing / rule_outputs).
+function anfisPredict(m, x) {
+  const n = x.length, R = m.c.length;
+  const xn = x.map((v, i) => (v - m.lo[i]) / (m.hi[i] - m.lo[i]));          // [0,1] olcekleme
+  const mu = [], logw = [];
+  for (let j = 0; j < R; j++) {
+    mu.push([]); let lw = 0;
+    for (let i = 0; i < n; i++) {
+      const z = (xn[i] - m.c[j][i]) / m.s[j][i];
+      mu[j].push(Math.exp(-0.5 * z * z));                                    // K1: Gauss uyelik
+      lw += -0.5 * z * z;                                                    // K2: log(carpim)
+    }
+    logw.push(lw);
+  }
+  const mx = Math.max(...logw);
+  const e = logw.map(v => Math.exp(v - mx)), se = e.reduce((a, b) => a + b, 0);
+  const wbar = e.map(v => v / se);                                           // K3: normalizasyon
+  const f = m.theta.map(t => t.slice(0, n).reduce((a, p, i) => a + p * xn[i], t[n]));  // Sugeno
+  const yn = wbar.reduce((a, w, j) => a + w * f[j], 0);                      // K4 + K5
+  return { y: yn * m.sd + m.mu, mu, w: logw.map(Math.exp), wbar, f: f.map(v => v * m.sd + m.mu), xn };
+}
+//</model>
+
+const OUTS = { power: "DC güç", voltage: "DC gerilim", current: "DC akım" };
+const LABELS = { irradiance: ["Güneş ışınımı", "W/m²", 0], amb_temp: ["Ortam sıcaklığı", "°C", 1],
+                 module_temp: ["Modül sıcaklığı", "°C", 1], wind_speed: ["Rüzgâr hızı", "m/s", 2] };
+const COLORS = ["var(--r1)", "var(--r2)", "var(--r3)", "var(--r4)"];
+const HEX = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100"];
+const MODELS = { baseline: "ANFIS (makale)", robust: "Robust-ANFIS" };
+let x = [], sampleIdx = null, beforeNoise = null, selOut = "power", selModel = "baseline";
+
+const fmt = (v, d = 1) => v.toLocaleString("tr-TR", { minimumFractionDigits: d, maximumFractionDigits: d });
+const fmtOut = (o, v) => o === "power" ? fmt(v / 1000, 1) + " kW" : fmt(v, 1) + (o === "voltage" ? " V" : " A");
+
+function verify() {
+  let maxRel = 0;
+  for (const kind of ["baseline", "robust"]) for (const o in OUTS)
+    DATA.check.x.forEach((xi, k) => {
+      const py = DATA.check.pred[o][kind][k], js = anfisPredict(DATA.models[kind][o], xi).y;
+      maxRel = Math.max(maxRel, Math.abs(js - py) / Math.max(1, Math.abs(py)));
+    });
+  const el = document.getElementById("verify");
+  el.textContent = maxRel < 1e-9 ? "Python modeliyle birebir aynı (maks. bağıl fark " + maxRel.toExponential(1) + ")" : "UYARI: Python ile fark " + maxRel.toExponential(2);
+  if (maxRel >= 1e-9) el.classList.add("bad");
+}
+
+function buildSliders() {
+  const box = document.getElementById("sliders");
+  DATA.inputs.forEach((name, i) => {
+    const [lab, unit, dec] = LABELS[name], [lo, hi] = DATA.ranges[name];
+    const l = document.createElement("label"); l.className = "in";
+    l.innerHTML = `<div class="inrow"><span>${lab}</span><output id="o${i}"></output></div>
+      <input type="range" id="r${i}" min="${lo}" max="${hi}" step="${(hi - lo) / 500}">`;
+    box.appendChild(l);
+    l.querySelector("input").addEventListener("input", ev => { x[i] = +ev.target.value; sampleIdx = null; beforeNoise = null; render(); });
+  });
+}
+
+function setInputs(v) { x = v.slice(); render(); }
+
+function render() {
+  DATA.inputs.forEach((name, i) => {
+    const [, unit, dec] = LABELS[name];
+    document.getElementById("r" + i).value = x[i];
+    document.getElementById("o" + i).textContent = fmt(x[i], dec) + " " + unit;
+  });
+  document.getElementById("undo").disabled = !beforeNoise;
+  const s = sampleIdx !== null ? DATA.samples[sampleIdx] : null;
+  document.getElementById("sample").value = sampleIdx === null ? "" : String(sampleIdx);
+
+  // Tahmin kartlari
+  const outs = document.getElementById("outs"); outs.innerHTML = "";
+  for (const o in OUTS) {
+    const b = anfisPredict(DATA.models.baseline[o], x).y, r = anfisPredict(DATA.models.robust[o], x).y;
+    const meas = s ? s.y[o] : null;
+    const err = v => meas === null ? "" : ` <span class="err">(${v >= meas ? "+" : "−"}${fmt(Math.abs(v - meas) / Math.abs(meas) * 100, 1)}%)</span>`;
+    outs.insertAdjacentHTML("beforeend", `<div class="out"><div class="name">${OUTS[o]}</div>
+      ${meas !== null ? `<div class="kv meas"><span class="k">Ölçülen${beforeNoise ? " (gürültüsüz)" : ""}</span><span class="v">${fmtOut(o, meas)}</span></div>` : ""}
+      <div class="kv"><span class="k">ANFIS</span><span class="v">${fmtOut(o, b)}${err(b)}</span></div>
+      <div class="kv rob"><span class="k">Robust-ANFIS</span><span class="v">${fmtOut(o, r)}${err(r)}</span></div></div>`);
+  }
+
+  // Kural tablosu
+  const m = DATA.models[selModel][selOut], p = anfisPredict(m, x);
+  const tb = document.getElementById("rules"); tb.innerHTML = "";
+  p.wbar.forEach((w, j) => {
+    tb.insertAdjacentHTML("beforeend", `<tr><td><span class="dot" style="background:${COLORS[j]}"></span>Kural ${j + 1}</td>
+      ${p.mu[j].map(v => `<td>${fmt(v, 2)}</td>`).join("")}
+      <td><div class="bar"><span style="width:${(w * 100).toFixed(1)}%; background:${COLORS[j]}; opacity:.55"></span><b>${fmt(w * 100, 1)}%</b></div></td>
+      <td>${fmtOut(selOut, p.f[j])}</td><td>${fmtOut(selOut, w * p.f[j])}</td></tr>`);
+  });
+  document.getElementById("total").textContent = fmtOut(selOut, p.y);
+
+  const top = p.wbar.indexOf(Math.max(...p.wbar));
+  const cj = m.c[top].map((c, i) => c * (m.hi[i] - m.lo[i]) + m.lo[i]);
+  document.getElementById("why").innerHTML = `<b>Kural ${top + 1}</b> en güçlü ateşleniyor (w̄ = ${fmt(p.wbar[top] * 100, 1)}%): girdiler bu kuralın merkezine yakın
+    (ışınım ≈ ${fmt(cj[0], 0)} W/m², T ortam ≈ ${fmt(cj[1], 1)} °C, T modül ≈ ${fmt(cj[2], 1)} °C, rüzgâr ≈ ${fmt(cj[3], 1)} m/s).
+    Tahmin, kuralların doğrusal çıktılarının w̄ ağırlıklı ortalamasıdır: ${fmtOut(selOut, p.y)}.`;
+
+  // Uyelik fonksiyonu grafikleri
+  const mfs = document.getElementById("mfs"); mfs.innerHTML = "";
+  DATA.inputs.forEach((name, i) => {
+    const [lab, unit, dec] = LABELS[name], W = 300, H = 100, N = 80;
+    let paths = "";
+    for (let j = 0; j < m.c.length; j++) {
+      let d = "";
+      for (let k = 0; k <= N; k++) {
+        const t = k / N, mu = Math.exp(-0.5 * ((t - m.c[j][i]) / m.s[j][i]) ** 2);
+        d += (k ? "L" : "M") + (t * W).toFixed(1) + " " + (H - 4 - mu * (H - 12)).toFixed(1);
+      }
+      paths += `<path d="${d}" fill="none" stroke="${HEX[j]}" stroke-width="2.5"/>`;
+    }
+    const xx = Math.min(1, Math.max(0, p.xn[i])) * W;
+    mfs.insertAdjacentHTML("beforeend", `<div class="mf"><div class="t"><span>${lab}</span><span>${fmt(x[i], dec)} ${unit}</span></div>
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="${lab} için kuralların üyelik fonksiyonları">${paths}
+      <line x1="${xx}" y1="0" x2="${xx}" y2="${H}" stroke="#13233A" stroke-width="2" stroke-dasharray="5 4"/></svg></div>`);
+  });
+}
+
+function seg(id, items, get, set) {
+  const el = document.getElementById(id); el.innerHTML = "";
+  for (const k in items) {
+    const b = document.createElement("button"); b.textContent = items[k];
+    b.className = get() === k ? "on" : ""; b.onclick = () => { set(k); seg(id, items, get, set); render(); };
+    el.appendChild(b);
+  }
+}
+
+function init() {
+  const sel = document.getElementById("sample");
+  sel.innerHTML = `<option value="">— elle girilen değerler —</option>` + DATA.samples.map((s, i) =>
+    `<option value="${i}">${s.t} · ${fmt(s.x[0], 0)} W/m² · ${fmt(s.y.power / 1000, 0)} kW</option>`).join("");
+  sel.onchange = () => { if (sel.value === "") return; sampleIdx = +sel.value; beforeNoise = null; setInputs(DATA.samples[sampleIdx].x); };
+  document.getElementById("rand").onclick = () => { sampleIdx = Math.floor(Math.random() * DATA.samples.length); beforeNoise = null; setInputs(DATA.samples[sampleIdx].x); };
+  document.getElementById("noise").onclick = () => {
+    if (!beforeNoise) beforeNoise = x.slice();
+    const g = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+    const b = beforeNoise;
+    x = [Math.max(0, b[0] * (1 + 0.05 * g())), b[1] + 0.8 * g(), b[2] + 0.8 * g(), Math.max(0, b[3] * (1 + 0.05 * g()))];
+    render();
+  };
+  document.getElementById("undo").onclick = () => { if (beforeNoise) { x = beforeNoise; beforeNoise = null; render(); } };
+  document.getElementById("legend").innerHTML = HEX.map((c, j) => `<span><span class="dot" style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${c};margin-right:6px"></span>Kural ${j + 1}</span>`).join("") + `<span>kesikli çizgi: şu anki girdi</span>`;
+  seg("segOut", OUTS, () => selOut, k => selOut = k);
+  seg("segModel", MODELS, () => selModel, k => selModel = k);
+  buildSliders();
+  verify();
+  const noon = DATA.samples.reduce((bi, s, i) => s.x[0] > DATA.samples[bi].x[0] ? i : bi, 0);
+  sampleIdx = noon; setInputs(DATA.samples[noon].x);
+}
+init();
+</script>
+</body>
+</html>

@@ -68,6 +68,17 @@ python experiments/baseline/run_baseline.py      # reproduction (Tables 4 & 5 of
 ```
 Outputs: `results/tables/*.csv`, `results/figures/*.png`, trained models in `results/models/*.json`.
 
+### Live demo
+```bash
+python src/export_demo.py     # trains baseline + Robust-ANFIS, writes demo/index.html
+```
+Open `demo/index.html` in any browser (no internet or installation needed). Pick a real test hour or move the
+four sliders to see the DC power, voltage and current predicted by both models next to the measured value, each
+rule's memberships (layer 1), normalised firing strength (layer 3), linear output and contribution (layers 4–5),
+and the membership functions with the current input marked. "Sensör gürültüsü ekle" perturbs the inputs at the
+sensor accuracy of the paper. On load the page re-computes 120 predictions exported from Python and shows the
+largest difference (≈ 1e-15), so the browser runs exactly the trained Python model.
+
 ## Reproduction Experiments
 **Experiment 1 — ANFIS accuracy for each output (paper Table 4)**
 
