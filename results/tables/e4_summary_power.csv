@@ -4,6 +4,6 @@ R² (clean test),0.9954,0.9941,-0.1303
 nRMSE % (clean test),4.3166,4.8940,13.3778
 nRMSE % (sensor-spec noise),8.0587,6.7436,-16.3190
 nRMSE % (2× sensor noise),14.6842,10.4857,-28.5915
-Training time (s),1.1035,1.3545,22.7467
-Inference time (µs/sample),0.2653,0.2338,-11.8656
+Training time (s),1.1941,1.4482,21.2765
+Inference time (µs/sample),0.2521,0.2430,-3.6153
 Parameters,52.0000,52.0000,0.0000

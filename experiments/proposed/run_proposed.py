@@ -4,6 +4,7 @@ E1  Kural tabani karmasikligi: subtractive clustering ile 1-12 kural vs grid par
 E2  Kronolojik bolme: egitim = Haziran - 20 Agustos, test = sonrasi (makaledeki rastgele bolme yerine).
 E3  Sensor gurultusu dayanikliligi: test girdilerine makale Tablo 2'deki sensor hassasiyeti kadar gurultu.
 E4  Onerilen yontem (Robust-ANFIS = gurultu enjeksiyonlu egitim) vs baseline ANFIS, 3 cikti icin.
+E5  Mekanizma: girdi bazli gurultu etkisi ve modellerin girdi duyarliliklari.
 
 Calistirma (proje kok klasorunden):  python experiments/proposed/run_proposed.py
 Sure: ~1-2 dakika.
@@ -216,6 +217,41 @@ def e4_baseline_vs_proposed(df, X):
     return t
 
 
+def e5_mechanism(df, X):
+    """Robust-ANFIS neden daha dayanikli? (a) gurultu tek bir girdiye eklenince hata,
+    (b) her girdiye ortalama duyarlilik dP/dx (girdinin 1 standart sapmasi basina W)."""
+    print("\n[E5] Mekanizma: girdi bazli gurultu ve duyarlilik (DC guc, 5 bolme)")
+    y = df[TARGETS["power"]].to_numpy()
+    rows_a, rows_b = [], []
+    for seed in SEEDS:
+        tr, te = split(df, seed=seed)
+        bm = benchmark_models()
+        models = {"ANFIS (baseline)": ANFISRegressor(4), "Robust-ANFIS": robust_anfis(seed),
+                  "SVM": bm["SVM"], "Random Forest": bm["Random Forest"]}
+        sd = X[tr].std(0)
+        for name, m in models.items():
+            m.fit(X[tr], y[tr])
+            rng = np.random.default_rng(2000 + seed)
+            for i, inp in enumerate(INPUTS):
+                e = np.mean([metrics(y[te], m.predict(add_sensor_noise(X[te], 1, rng, only=i)))["nRMSE_%"]
+                             for _ in range(NOISE_REPEATS)])
+                rows_a.append({"model": name, "noisy_input": inp, "seed": seed, "test_nRMSE_%": e})
+            if "ANFIS" in name:
+                for i, inp in enumerate(INPUTS):
+                    h = np.zeros(4); h[i] = 1e-3 * sd[i]
+                    d = (m.predict(X[te] + h) - m.predict(X[te] - h)) / (2 * h[i]) * sd[i]
+                    rows_b.append({"model": name, "input": inp, "seed": seed,
+                                   "mean_dP_per_std_W": d.mean(), "mean_abs_dP_per_std_W": np.abs(d).mean()})
+    a = (pd.DataFrame(rows_a).groupby(["model", "noisy_input"])["test_nRMSE_%"].mean()
+           .unstack()[INPUTS])
+    b = pd.DataFrame(rows_b).groupby(["model", "input"])[["mean_dP_per_std_W", "mean_abs_dP_per_std_W"]].mean()
+    a.to_csv(TAB / "e5_noise_per_input.csv", float_format="%.4f")
+    b.to_csv(TAB / "e5_sensitivity.csv", float_format="%.1f")
+    print("Yalnizca tek girdiye sensor gurultusu (nRMSE %):\n", a.round(2).to_string())
+    print("\nOrtalama duyarlilik (W / girdinin 1 std'si):\n", b.round(0).to_string())
+    print("  korelasyon(isinim, modul sicakligi) =", round(float(np.corrcoef(X[:, 0], X[:, 2])[0, 1]), 3))
+
+
 def main():
     apply_style()
     df = load_clean()
@@ -225,6 +261,7 @@ def main():
     e2_chronological(df, X)
     e3_noise(df, X)
     e4_baseline_vs_proposed(df, X)
+    e5_mechanism(df, X)
     print(f"\nToplam sure: {time.perf_counter() - t0:.0f} s | tablolar -> {TAB} | grafikler -> {FIG}")
 
 

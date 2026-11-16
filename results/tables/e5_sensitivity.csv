@@ -1,0 +1,9 @@
+model,input,mean_dP_per_std_W,mean_abs_dP_per_std_W
+ANFIS (baseline),amb_temp,2526.3,5552.2
+ANFIS (baseline),irradiance,77177.8,77177.8
+ANFIS (baseline),module_temp,-8027.6,17108.8
+ANFIS (baseline),wind_speed,-632.6,1687.2
+Robust-ANFIS,amb_temp,-3820.5,4042.1
+Robust-ANFIS,irradiance,66529.6,66529.6
+Robust-ANFIS,module_temp,5445.4,6873.6
+Robust-ANFIS,wind_speed,1860.3,1995.0

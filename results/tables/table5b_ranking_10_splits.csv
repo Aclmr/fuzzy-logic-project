@@ -1,0 +1,6 @@
+model,mean,std,times_best_of_10
+ANFIS,4877.5,229.6,10
+Decision Tree,7256.1,368.9,0
+Linear Regression,7492.1,163.5,0
+Random Forest,5600.7,203.5,0
+SVM,5651.4,199.7,0

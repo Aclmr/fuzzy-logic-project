@@ -64,7 +64,7 @@ pip install -r requirements.txt
 
 ## How to Run
 ```bash
-python experiments/baseline/run_baseline.py      # reproduction (Tables 4 & 5 of the paper)
+python experiments/baseline/run_baseline.py      # reproduction (Tables 4 & 5 of the paper, + ranking over 10 splits)
 ```
 Outputs: `results/tables/*.csv`, `results/figures/*.png`, trained models in `results/models/*.json`.
 
@@ -108,8 +108,9 @@ For a fair comparison every ML model is also trained with the same noise injecti
 | E2 Temporal validity | random split vs. chronological split (train Jun – 20 Aug, test after) | `e2_chronological_split.csv`, `fig7` |
 | E3 Sensor-noise robustness | test inputs perturbed at 0–2× sensor accuracy, clean vs. noise-injected training | `e3_noise_robustness.csv`, `fig8` |
 | E4 Baseline vs. proposed | ANFIS vs. Robust-ANFIS for power, voltage, current | `e4_baseline_vs_proposed.csv`, `e4_summary_power.csv` |
+| E5 Mechanism | noise on one input at a time; mean input sensitivity dP/dx of both ANFIS models | `e5_noise_per_input.csv`, `e5_sensitivity.csv` |
 
-All E1/E3/E4 numbers are means over 5 random splits (seeds 0–4).
+All E1/E3/E4/E5 numbers are means over 5 random splits (seeds 0–4).
 
 ```bash
 python experiments/proposed/run_proposed.py      # ~3 min
@@ -132,14 +133,22 @@ Grid partition with 3 MFs per input (81 rules, 1053 parameters for ~1060 samples
 | nRMSE % (clean test) | 4.32 | 4.89 | +13 % |
 | nRMSE % (sensor-spec noise) | 8.06 | 6.74 | **−16 %** |
 | nRMSE % (2× sensor noise) | 14.68 | 10.49 | **−29 %** |
-| Training time (s) | 0.78 | 1.03 | +33 % |
-| Inference time (µs/sample) | 0.27 | 0.32 | ≈ same |
+| Training time (s) | 0.68 | 0.92 | +35 % |
+| Inference time (µs/sample) | 0.25 | 0.27 | ≈ same |
 | Parameters | 52 | 52 | 0 |
 
 Baseline ANFIS is the most accurate model on clean data but the most sensitive to input noise: at sensor-spec
 noise it falls behind SVM and Random Forest. Robust-ANFIS trades a small loss on clean data for the best
 accuracy at realistic noise (6.74 %; noise-injected SVM 6.83 %, Random Forest 7.19 %). Voltage and current
 show the same pattern (current at sensor-spec noise: 8.81 → 7.30 %).
+
+**E5.** The degradation comes almost entirely from irradiance noise (irradiance-only noise: ANFIS 7.69 %,
+Robust-ANFIS 6.66 %, SVM 7.23 %, RF 7.15 %; temperature- or wind-only noise moves ANFIS only from 4.3 to ≤ 4.55 %).
+Noise injection lowers the model's irradiance sensitivity by ~14 % and lets it lean on module temperature,
+which is strongly correlated with irradiance (r = 0.88), as a backup signal.
+
+## Report
+`report/report.pdf` (source: `report/report.tex`, compile with XeLaTeX).
 
 ## Limitations
 - The noise model is i.i.d. Gaussian at the sensor-spec level; real sensor errors can be biased or drift.

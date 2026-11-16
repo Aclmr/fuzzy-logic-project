@@ -1,0 +1,5 @@
+model,irradiance,amb_temp,module_temp,wind_speed
+ANFIS (baseline),7.6884,4.4921,4.5451,4.3500
+Random Forest,7.1547,5.0234,5.0212,5.0120
+Robust-ANFIS,6.6569,4.9480,4.9195,4.8999
+SVM,7.2296,5.0970,5.0963,5.0657

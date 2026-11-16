@@ -85,6 +85,20 @@ def main():
     t5.to_csv(TAB / "table5_model_comparison.csv", index=False, float_format="%.4f")
     print("\nTablo 5 - DC guc, model karsilastirmasi\n", t5.round(4).to_string(index=False))
 
+    # ---------------- Saglamlik: Tablo 5 siralamasi 10 farkli rastgele bolmede ----------------
+    rows = []
+    for seed in range(10):
+        tr_s, te_s = split(df, seed=seed)
+        for name, model in benchmark_models().items():
+            r, _, _ = fit_eval(model, X[tr_s], y[tr_s], X[te_s], y[te_s])
+            rows.append({"seed": seed, "model": name, "test_RMSE": r["test_RMSE"]})
+    rs = pd.DataFrame(rows)
+    best = rs.loc[rs.groupby("seed")["test_RMSE"].idxmin(), "model"].value_counts()
+    t5b = rs.groupby("model")["test_RMSE"].agg(["mean", "std"])
+    t5b["times_best_of_10"] = best.reindex(t5b.index).fillna(0).astype(int)
+    t5b.to_csv(TAB / "table5b_ranking_10_splits.csv", float_format="%.1f")
+    print("\nTablo 5 siralamasi, 10 rastgele bolme (test RMSE, W)\n", t5b.round(0).to_string())
+
     make_figures(df, tr, te, preds, anfis_models, t5, model_preds)
     print(f"\nTablolar -> {TAB}\nGrafikler -> {FIG}\nModeller -> {MOD}")
 
