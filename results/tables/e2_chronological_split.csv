@@ -1,0 +1,13 @@
+split,model,test_R2,test_RMSE,test_nRMSE_%
+random,Linear Regression,0.9888,7368.8017,6.7115
+random,Decision Tree,0.9902,6860.5993,6.2486
+random,SVM,0.9941,5316.1883,4.8420
+random,Random Forest,0.9944,5183.3596,4.7210
+random,ANFIS,0.9952,4815.0611,4.3855
+random,Robust-ANFIS (proposed),0.9942,5273.7395,4.8033
+chronological,Linear Regression,0.9871,7931.8727,7.1545
+chronological,Decision Tree,0.9855,8411.2972,7.5870
+chronological,SVM,0.9852,8489.9750,7.6579
+chronological,Random Forest,0.9914,6486.5066,5.8508
+chronological,ANFIS,0.9950,4942.4340,4.4581
+chronological,Robust-ANFIS (proposed),0.9934,5669.5497,5.1139

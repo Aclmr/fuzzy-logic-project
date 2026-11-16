@@ -1,6 +1,6 @@
 # ANFIS-Based PV Power Forecasting — Reproduction & Extension
 
-Bulanık Mantık course term project.
+Fuzzy Logic (Bulanık Mantık) course term project.
 
 ## Student Information
 - **Name:** Emre Açıl
@@ -92,12 +92,59 @@ The paper's main finding is reproduced: ANFIS has the lowest test error (it rank
 and voltage is the hardest output to predict.
 
 ## Proposed Extension
-_In progress — see `experiments/proposed/`._
+**Question:** the paper evaluates ANFIS only on clean data with a random split and a fixed 4-rule base.
+How does it behave when (i) the rule base changes, (ii) the test period lies in the future, and
+(iii) the inputs carry realistic sensor error?
+
+**Proposed method — Robust-ANFIS (noise-injection training).** The rule base is still built by subtractive
+clustering on the clean training data (same 4 rules, same 52 parameters), but the parameters are learned on the
+clean data plus 5 noisy copies. The noise follows the sensor accuracies reported in the paper's own Table 2:
+±5 % irradiance, ±5 % wind speed, ±0.8 °C temperature (`src/noise.py`). Inference cost is unchanged.
+For a fair comparison every ML model is also trained with the same noise injection.
+
+| Experiment | What is changed | Script output |
+|---|---|---|
+| E1 Rule-base complexity | subtractive clustering with 1–12 rules vs. grid partition (16 / 81 rules) | `e1_rule_base.csv`, `fig6` |
+| E2 Temporal validity | random split vs. chronological split (train Jun – 20 Aug, test after) | `e2_chronological_split.csv`, `fig7` |
+| E3 Sensor-noise robustness | test inputs perturbed at 0–2× sensor accuracy, clean vs. noise-injected training | `e3_noise_robustness.csv`, `fig8` |
+| E4 Baseline vs. proposed | ANFIS vs. Robust-ANFIS for power, voltage, current | `e4_baseline_vs_proposed.csv`, `e4_summary_power.csv` |
+
+All E1/E3/E4 numbers are means over 5 random splits (seeds 0–4).
+
+```bash
+python experiments/proposed/run_proposed.py      # ~3 min
+```
 
 ## Experimental Results
-See `results/tables/` and `results/figures/`.
+**E1.** 2–6 rules give the lowest test error for all three outputs; 1 rule equals linear regression
+(power nRMSE 6.7 %), and adding rules beyond ~8 starts to overfit (power, 11 rules: 8.0 ± 3.6 %).
+Grid partition with 3 MFs per input (81 rules, 1053 parameters for ~1060 samples) collapses
+(power 26 %, current 38 %). The paper's choice of 4 SC rules is therefore well-founded.
+
+**E2.** Under a chronological split ANFIS keeps its accuracy (4.39 → 4.46 %), while the ML models degrade
+(SVM 4.8 → 7.7 %, Random Forest 4.7 → 5.9 %), so the paper's conclusion also holds for a future test period.
+
+**E3/E4 — DC power, baseline vs. proposed**
+
+| Metric | Baseline ANFIS | Robust-ANFIS | Change |
+|---|---|---|---|
+| R² (clean test) | 0.9954 | 0.9941 | −0.1 % |
+| nRMSE % (clean test) | 4.32 | 4.89 | +13 % |
+| nRMSE % (sensor-spec noise) | 8.06 | 6.74 | **−16 %** |
+| nRMSE % (2× sensor noise) | 14.68 | 10.49 | **−29 %** |
+| Training time (s) | 0.78 | 1.03 | +33 % |
+| Inference time (µs/sample) | 0.27 | 0.32 | ≈ same |
+| Parameters | 52 | 52 | 0 |
+
+Baseline ANFIS is the most accurate model on clean data but the most sensitive to input noise: at sensor-spec
+noise it falls behind SVM and Random Forest. Robust-ANFIS trades a small loss on clean data for the best
+accuracy at realistic noise (6.74 %; noise-injected SVM 6.83 %, Random Forest 7.19 %). Voltage and current
+show the same pattern (current at sensor-spec noise: 8.81 → 7.30 %).
 
 ## Limitations
+- The noise model is i.i.d. Gaussian at the sensor-spec level; real sensor errors can be biased or drift.
+- Robust-ANFIS loses ~0.6 percentage points of nRMSE on clean data; which model to deploy depends on how noisy
+  the field sensors are.
 - Different site and climate (temperate Maryland vs. hot-arid Sharjah) and a much larger array.
 - The paper does not report the clustering radius, epochs, split procedure or ML hyper-parameters; we chose the
   radius that yields 4 rules, 100 epochs, a seeded random split and scikit-learn defaults.

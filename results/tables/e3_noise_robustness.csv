@@ -1,0 +1,51 @@
+model,training,noise_level,mean,std
+ANFIS,clean training,0.0000,4.3166,0.2248
+ANFIS,clean training,0.5000,5.4959,0.2041
+ANFIS,clean training,1.0000,8.0587,0.2650
+ANFIS,clean training,1.5000,11.1963,0.4512
+ANFIS,clean training,2.0000,14.6842,0.8386
+ANFIS,noise-injected training,0.0000,4.8940,0.2052
+ANFIS,noise-injected training,0.5000,5.4169,0.1979
+ANFIS,noise-injected training,1.0000,6.7436,0.1692
+ANFIS,noise-injected training,1.5000,8.5052,0.1442
+ANFIS,noise-injected training,2.0000,10.4857,0.1256
+Decision Tree,clean training,0.0000,6.4605,0.3215
+Decision Tree,clean training,0.5000,7.0614,0.1523
+Decision Tree,clean training,1.0000,8.3631,0.1513
+Decision Tree,clean training,1.5000,10.2438,0.1805
+Decision Tree,clean training,2.0000,12.1919,0.1237
+Decision Tree,noise-injected training,0.0000,8.2065,0.4410
+Decision Tree,noise-injected training,0.5000,8.5685,0.2931
+Decision Tree,noise-injected training,1.0000,9.5366,0.1719
+Decision Tree,noise-injected training,1.5000,10.8083,0.2196
+Decision Tree,noise-injected training,2.0000,12.5347,0.1891
+Linear Regression,clean training,0.0000,6.7473,0.0359
+Linear Regression,clean training,0.5000,7.3470,0.0466
+Linear Regression,clean training,1.0000,8.8327,0.0672
+Linear Regression,clean training,1.5000,10.8464,0.1077
+Linear Regression,clean training,2.0000,13.1476,0.1605
+Linear Regression,noise-injected training,0.0000,6.8771,0.0337
+Linear Regression,noise-injected training,0.5000,7.3747,0.0439
+Linear Regression,noise-injected training,1.0000,8.6387,0.0619
+Linear Regression,noise-injected training,1.5000,10.3932,0.1080
+Linear Regression,noise-injected training,2.0000,12.4322,0.1674
+Random Forest,clean training,0.0000,5.0104,0.1439
+Random Forest,clean training,0.5000,5.6242,0.1125
+Random Forest,clean training,1.0000,7.1851,0.0893
+Random Forest,clean training,1.5000,9.1581,0.0966
+Random Forest,clean training,2.0000,11.2700,0.0722
+Random Forest,noise-injected training,0.0000,5.4972,0.1602
+Random Forest,noise-injected training,0.5000,6.0177,0.1448
+Random Forest,noise-injected training,1.0000,7.2510,0.1319
+Random Forest,noise-injected training,1.5000,8.9049,0.1518
+Random Forest,noise-injected training,2.0000,10.8430,0.0921
+SVM,clean training,0.0000,5.0125,0.2191
+SVM,clean training,0.5000,5.7089,0.1928
+SVM,clean training,1.0000,7.3896,0.1568
+SVM,clean training,1.5000,9.5088,0.1356
+SVM,clean training,2.0000,11.7843,0.1336
+SVM,noise-injected training,0.0000,5.0535,0.2231
+SVM,noise-injected training,0.5000,5.5519,0.2145
+SVM,noise-injected training,1.0000,6.8317,0.1991
+SVM,noise-injected training,1.5000,8.5364,0.1981
+SVM,noise-injected training,2.0000,10.4442,0.2055

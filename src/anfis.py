@@ -174,10 +174,16 @@ class ANFIS:
 
 
 class ANFISRegressor:
-    """Olcekleme + ANFIS'i tek nesnede toplayan, sklearn benzeri arayuz."""
-    def __init__(self, n_rules=4, ra=None, epochs=100, lr=0.01, init="subclust", n_mf=2):
+    """Olcekleme + ANFIS'i tek nesnede toplayan, sklearn benzeri arayuz.
+
+    noise_copies > 0 ise ONERILEN YONTEM (Robust-ANFIS) calisir: kural tabani temiz
+    egitim verisinden kurulur, parametreler ise temiz + gurultulu kopyalar uzerinde ogrenilir.
+    """
+    def __init__(self, n_rules=4, ra=None, epochs=100, lr=0.01, init="subclust", n_mf=2,
+                 noise_copies=0, noise_level=1.0, seed=0):
         self.n_rules, self.ra, self.epochs, self.lr = n_rules, ra, epochs, lr
         self.init, self.n_mf = init, n_mf
+        self.noise_copies, self.noise_level, self.seed = noise_copies, noise_level, seed
 
     def fit(self, X, y):
         X, y = np.asarray(X, float), np.asarray(y, float)
@@ -188,6 +194,10 @@ class ANFISRegressor:
             self.model = ANFIS.from_subclust(Xn, yn, ra=self.ra, n_rules=self.n_rules)
         else:
             self.model = ANFIS.grid(Xn, self.n_mf)
+        if self.noise_copies:
+            from noise import augment
+            Xa, ya = augment(X, y, self.noise_copies, self.noise_level, self.seed)
+            Xn, yn = self._sx(Xa), (ya - self.mu) / self.sd
         self.model.fit(Xn, yn, epochs=self.epochs, lr=self.lr)
         return self
 
